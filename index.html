@@ -35,6 +35,7 @@
         <div id="apiKeyPanel" class="max-w-2xl mx-auto px-4">
             <div class="bg-slate-100 p-4 rounded-xl mb-4">
                 <input type="password" id="apiKeyInput" placeholder="Enter Gemini API Key" class="w-full p-2 rounded-lg border border-slate-300 text-sm mb-2">
+                <p class="text-[11px] text-slate-500 mb-3">Your key is saved only in this browser, not in the public GitHub repo.</p>
                 <button id="saveKeyBtn" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium w-full" type="button">Save Key</button>
             </div>
         </div>
@@ -107,21 +108,32 @@
             container.appendChild(label);
         });
 
-        document.getElementById('apiKeyInput').value = apiKey;
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiKeyPanel = document.getElementById('apiKeyPanel');
+        const gearBtn = document.getElementById('gearBtn');
 
-        document.getElementById('gearBtn').onclick = () => {
-            document.getElementById('apiKeyPanel').classList.toggle('open');
-            document.getElementById('gearBtn').classList.toggle('active');
+        apiKeyInput.value = apiKey;
+
+        function openApiKeyPanel() {
+            apiKeyPanel.classList.add('open');
+            gearBtn.classList.add('active');
+            setTimeout(() => apiKeyInput.focus(), 250);
+        }
+
+        gearBtn.onclick = () => {
+            apiKeyPanel.classList.toggle('open');
+            gearBtn.classList.toggle('active');
         };
 
         document.getElementById('saveKeyBtn').onclick = () => {
-            const val = document.getElementById('apiKeyInput').value.trim();
+            const val = apiKeyInput.value.trim();
             if (val) {
                 apiKey = val;
                 localStorage.setItem('geminiApiKey', val);
+                showBanner("API key saved. You can now plan your trip.", "success");
             }
-            document.getElementById('apiKeyPanel').classList.remove('open');
-            document.getElementById('gearBtn').classList.remove('active');
+            apiKeyPanel.classList.remove('open');
+            gearBtn.classList.remove('active');
         };
 
         document.getElementById('tripForm').onsubmit = async (e) => {
@@ -136,7 +148,8 @@
             };
 
             if (!apiKey) {
-                showError("Please add your Gemini API key in settings first.");
+                showError("Paste your Gemini API key in the settings box, click Save Key, then submit again.");
+                openApiKeyPanel();
                 return;
             }
 
@@ -186,7 +199,14 @@
         }
 
         function showError(msg) {
-            document.getElementById('errorBanner').classList.remove('hidden');
+            showBanner(msg, "error");
+        }
+
+        function showBanner(msg, tone = "error") {
+            const banner = document.getElementById('errorBanner');
+            banner.className = tone === "success"
+                ? "mb-6 bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex justify-between items-center text-emerald-700"
+                : "mb-6 bg-red-50 border border-red-200 p-4 rounded-xl flex justify-between items-center text-red-700";
             document.getElementById('errorMessage').textContent = msg;
         }
 
